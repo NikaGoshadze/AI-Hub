@@ -44,22 +44,19 @@ vectorstore = PineconeVectorStore.from_existing_index(
 )
 print("Successfully connected to Pinecone index.")
 
+if __package__:
+    from .book_search import search_books
+else:
+    from book_search import search_books
+
+
 def search_book_database(query: str) -> str:
     """
     Performs a similarity search on the book vector database.
     Returns a formatted string of the top 3 results.
     """
     print(f"\n[Tool Action: Searching database for '{query}']")
-    results = vectorstore.similarity_search(query, k=3)
-    if not results:
-        return "No relevant books found in the database."
-    
-    response_string = "Found the following relevant books in the database:\n"
-    for doc in results:
-        title = doc.metadata.get('title', 'N/A')
-        authors = doc.metadata.get('authors', 'N/A')
-        response_string += f"- Title: {title}, Authors: {authors}\n"
-    return response_string
+    return search_books(query, vectorstore)
 
 book_search_tool = Tool(
     name="book_database_search",
