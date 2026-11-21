@@ -8,6 +8,11 @@ from langchain_core.output_parsers import StrOutputParser
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.memory import ConversationSummaryBufferMemory
 
+try:
+    from pizza_app.chat_commands import is_quit_or_exit_command
+except ImportError:
+    from chat_commands import is_quit_or_exit_command
+
 # --- 1. Load Environment and LLM ---
 load_dotenv()
 
@@ -92,7 +97,7 @@ def run_chatbot():
         try:
             user_input = input("You: ")
 
-            if user_input.lower() in ["quit", "exit"]:
+            if is_quit_or_exit_command(user_input):
                 print("\nნახვამდის! 👋")
                 break
 
