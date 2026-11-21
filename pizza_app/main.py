@@ -9,9 +9,9 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.memory import ConversationSummaryBufferMemory
 
 try:
-    from pizza_app.chat_commands import is_quit_or_exit_command
+    from pizza_app.chat_commands import is_quit_or_exit_command, is_summary_command
 except ImportError:
-    from chat_commands import is_quit_or_exit_command
+    from chat_commands import is_quit_or_exit_command, is_summary_command
 
 # --- 1. Load Environment and LLM ---
 load_dotenv()
@@ -101,7 +101,7 @@ def run_chatbot():
                 print("\nნახვამდის! 👋")
                 break
 
-            if user_input.lower() == "!summary":
+            if is_summary_command(user_input):
                 current_summary = memory.moving_summary_buffer
                 if not current_summary:
                     print("\n[System: ჯერ საუბრის ისტორია არ არის.]")
