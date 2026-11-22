@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from books_app.book_search import search_books
+from books_app.book_search import search_books, search_books_structured
 
 
 def test_success():
@@ -29,3 +29,17 @@ def test_backend_error():
     store.similarity_search.side_effect = RuntimeError("Backend unavailable")
     with pytest.raises(RuntimeError, match="Backend unavailable"):
         search_books("example", store)
+
+
+def test_parameterized_search_uses_author_filter_and_count():
+    store = Mock()
+    store.similarity_search.return_value = [
+        SimpleNamespace(metadata={"title": "Filtered Book", "authors": "Author A"})
+    ]
+
+    results = search_books_structured("example", store, author_filter="Author A", count=5)
+
+    assert results == [
+        {"title": "Filtered Book", "authors": "Author A", "metadata": {"title": "Filtered Book", "authors": "Author A"}}
+    ]
+    store.similarity_search.assert_called_once_with("example", k=5, filter={"authors": "Author A"})

@@ -10,18 +10,90 @@
   <main class="container">
     <h1>Book Search</h1>
     <p>Search the book vector database for matching titles and authors.</p>
-    <form method="post" class="search-form">
-      <label for="query">Search query</label>
-      <input id="query" name="query" type="text" value="{{ query }}" placeholder="Enter a topic, plot, or title">
+
+    <form id="search-form" class="search-form">
+      <div class="field-group">
+        <label for="query">Search query</label>
+        <input id="query" name="query" type="text" placeholder="Enter a topic, plot, or title" required>
+      </div>
+      <div class="field-group">
+        <label for="author_filter">Author filter</label>
+        <input id="author_filter" name="author_filter" type="text" placeholder="Optional author name">
+      </div>
+      <div class="field-group">
+        <label for="count">Result count</label>
+        <input id="count" name="count" type="number" min="1" step="1" value="3">
+      </div>
       <button type="submit">Search</button>
     </form>
 
-    {% if results %}
-    <section class="results">
+    <section id="status-message" class="status-message" aria-live="polite" hidden></section>
+
+    <section id="results" class="results" hidden>
       <h2>Results</h2>
-      <pre>{{ results }}</pre>
+      <ul id="results-list" class="results-list"></ul>
     </section>
-    {% endif %}
   </main>
+
+  <script>
+    const form = document.getElementById('search-form');
+    const statusMessage = document.getElementById('status-message');
+    const resultsSection = document.getElementById('results');
+    const resultsList = document.getElementById('results-list');
+
+    function showStatus(message, type) {
+      statusMessage.textContent = message;
+      statusMessage.className = `status-message ${type}`;
+      statusMessage.hidden = false;
+    }
+
+    function clearStatus() {
+      statusMessage.hidden = true;
+      statusMessage.textContent = '';
+      statusMessage.className = 'status-message';
+    }
+
+    function renderResults(results) {
+      resultsList.innerHTML = '';
+      results.forEach((result) => {
+        const item = document.createElement('li');
+        const title = result.title || 'N/A';
+        const authors = result.authors || 'N/A';
+        item.innerHTML = `<strong>${title}</strong><div class="authors">Authors: ${authors}</div>`;
+        resultsList.appendChild(item);
+      });
+      resultsSection.hidden = false;
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      clearStatus();
+      resultsSection.hidden = true;
+      resultsList.innerHTML = '';
+
+      const formData = new FormData(form);
+      try {
+        const response = await fetch('{{ url_for("search") }}', {
+          method: 'POST',
+          body: formData,
+        });
+        const payload = await response.json();
+
+        if (!response.ok || payload.status === 'error') {
+          showStatus(payload.message || 'Search failed.', 'error');
+          return;
+        }
+
+        if (payload.status === 'empty') {
+          showStatus(payload.message, 'empty');
+          return;
+        }
+
+        renderResults(payload.results || []);
+      } catch (error) {
+        showStatus('The book search service is temporarily unavailable. Please try again later.', 'error');
+      }
+    });
+  </script>
 </body>
 </html>
