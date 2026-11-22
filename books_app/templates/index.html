@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Book Search</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <main class="container">
+    <h1>Book Search</h1>
+    <p>Search the book vector database for matching titles and authors.</p>
+    <form method="post" class="search-form">
+      <label for="query">Search query</label>
+      <input id="query" name="query" type="text" value="{{ query }}" placeholder="Enter a topic, plot, or title">
+      <button type="submit">Search</button>
+    </form>
+
+    {% if results %}
+    <section class="results">
+      <h2>Results</h2>
+      <pre>{{ results }}</pre>
+    </section>
+    {% endif %}
+  </main>
+</body>
+</html>
