@@ -5,23 +5,119 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Book Search</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .status { margin-top: 1rem; }
+    .status[hidden] { display: none; }
+    .error { color: #b00020; }
+    .muted { color: #555; }
+    .result-item { margin: 0 0 1rem; }
+  </style>
 </head>
 <body>
   <main class="container">
     <h1>Book Search</h1>
     <p>Search the book vector database for matching titles and authors.</p>
-    <form method="post" class="search-form">
+    <form id="search-form" class="search-form">
       <label for="query">Search query</label>
-      <input id="query" name="query" type="text" value="{{ query }}" placeholder="Enter a topic, plot, or title">
-      <button type="submit">Search</button>
+      <input id="query" name="query" type="text" value="{{ query }}" placeholder="Enter a topic, plot, or title" autocomplete="off">
+      <button id="search-button" type="submit">Search</button>
     </form>
 
-    {% if results %}
-    <section class="results">
+    <section id="loading-state" class="status muted" hidden>Searching books...</section>
+    <section id="error-state" class="status error" hidden></section>
+    <section id="empty-state" class="status muted" hidden>No books matched your search.</section>
+
+    <section id="results-section" class="results" hidden>
       <h2>Results</h2>
-      <pre>{{ results }}</pre>
+      <div id="results-count" class="muted"></div>
+      <div id="results-list"></div>
     </section>
-    {% endif %}
   </main>
+
+  <script>
+    const form = document.getElementById('search-form');
+    const queryInput = document.getElementById('query');
+    const loadingState = document.getElementById('loading-state');
+    const errorState = document.getElementById('error-state');
+    const emptyState = document.getElementById('empty-state');
+    const resultsSection = document.getElementById('results-section');
+    const resultsList = document.getElementById('results-list');
+    const resultsCount = document.getElementById('results-count');
+
+    function setHidden(element, hidden) {
+      element.hidden = hidden;
+    }
+
+    function clearStates() {
+      setHidden(loadingState, true);
+      setHidden(errorState, true);
+      setHidden(emptyState, true);
+      setHidden(resultsSection, true);
+      errorState.textContent = '';
+      resultsList.innerHTML = '';
+      resultsCount.textContent = '';
+    }
+
+    function renderResults(data) {
+      resultsList.innerHTML = '';
+      resultsCount.textContent = `${data.count} result${data.count === 1 ? '' : 's'} found.`;
+
+      for (const result of data.results) {
+        const item = document.createElement('article');
+        item.className = 'result-item';
+
+        const title = document.createElement('h3');
+        title.textContent = result.title || 'Untitled';
+
+        const authors = document.createElement('p');
+        const authorText = Array.isArray(result.authors) ? result.authors.join(', ') : (result.authors || 'Unknown author');
+        authors.textContent = `Authors: ${authorText}`;
+
+        item.appendChild(title);
+        item.appendChild(authors);
+        resultsList.appendChild(item);
+      }
+
+      setHidden(resultsSection, false);
+    }
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      clearStates();
+
+      const query = queryInput.value.trim();
+      if (!query) {
+        errorState.textContent = 'Please enter a search query.';
+        setHidden(errorState, false);
+        return;
+      }
+
+      setHidden(loadingState, false);
+
+      try {
+        const response = await fetch(`/search?query=${encodeURIComponent(query)}`);
+        const data = await response.json();
+
+        setHidden(loadingState, true);
+
+        if (!response.ok) {
+          errorState.textContent = data.error || 'Sorry, something went wrong while searching for books.';
+          setHidden(errorState, false);
+          return;
+        }
+
+        if (!data.count) {
+          setHidden(emptyState, false);
+          return;
+        }
+
+        renderResults(data);
+      } catch (error) {
+        setHidden(loadingState, true);
+        errorState.textContent = 'Sorry, something went wrong while searching for books.';
+        setHidden(errorState, false);
+      }
+    });
+  </script>
 </body>
 </html>
