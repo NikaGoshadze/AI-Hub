@@ -21,6 +21,19 @@ if not os.getenv("GOOGLE_API_KEY"):
 if not os.getenv("PINECONE_API_KEY"):
     raise ValueError("Error: PINECONE_API_KEY environment variable not set.")
 
+book_search_limit_raw = os.getenv("BOOK_SEARCH_LIMIT")
+if book_search_limit_raw is None:
+    BOOK_SEARCH_LIMIT = 3
+else:
+    if book_search_limit_raw == "":
+        raise ValueError("Error: BOOK_SEARCH_LIMIT must be an integer from 1 to 10.")
+    try:
+        BOOK_SEARCH_LIMIT = int(book_search_limit_raw)
+    except ValueError as exc:
+        raise ValueError("Error: BOOK_SEARCH_LIMIT must be an integer from 1 to 10.") from exc
+    if BOOK_SEARCH_LIMIT < 1 or BOOK_SEARCH_LIMIT > 10:
+        raise ValueError("Error: BOOK_SEARCH_LIMIT must be an integer from 1 to 10.")
+
 print("Initializing models and connections...")
 llm = ChatGoogleGenerativeAI(model="gemini-1.5-flash", temperature=0.7)
 
@@ -56,7 +69,7 @@ def search_book_database(query: str) -> str:
     Returns a formatted string of the top 3 results.
     """
     print(f"\n[Tool Action: Searching database for '{query}']")
-    return search_books(query, vectorstore)
+    return search_books(query, vectorstore, limit=BOOK_SEARCH_LIMIT)
 
 book_search_tool = Tool(
     name="book_database_search",

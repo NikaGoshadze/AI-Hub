@@ -1,5 +1,5 @@
-def search_books(query: str, vectorstore) -> str:
-    results = vectorstore.similarity_search(query, k=3)
+def search_books(query: str, vectorstore, limit: int = 3) -> str:
+    results = vectorstore.similarity_search(query, k=limit)
     if not results:
         return "No relevant books found in the database."
     
