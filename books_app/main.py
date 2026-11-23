@@ -58,9 +58,9 @@ vectorstore = PineconeVectorStore.from_existing_index(
 print("Successfully connected to Pinecone index.")
 
 if __package__:
-    from .book_search import search_books
+    from .book_search import lookup_books, search_books
 else:
-    from book_search import search_books
+    from book_search import lookup_books, search_books
 
 
 def search_book_database(query: str) -> str:
@@ -70,6 +70,10 @@ def search_book_database(query: str) -> str:
     """
     print(f"\n[Tool Action: Searching database for '{query}']")
     return search_books(query, vectorstore, limit=BOOK_SEARCH_LIMIT)
+
+
+def lookup_book_database(query: str):
+    return lookup_books(query, vectorstore, limit=BOOK_SEARCH_LIMIT)
 
 book_search_tool = Tool(
     name="book_database_search",
@@ -85,7 +89,7 @@ Your goal is to help the user brainstorm, develop characters, outline plots, and
 You have access to a special tool called `book_database_search`.
 Use it when the user asks for inspiration from existing books, wants to know about common tropes, or wants to find examples of specific plot devices.
 Before suggesting a completely new idea, you can quickly search the database to see if similar concepts exist, which can enrich your answer.
-Be encouraging, collaborative, and inspiring. Ask clarifying questions to better understand the user's vision.
+Be encouraging, collaborative, and inspiring. Ask clarifying questions to better understand your vision.
 """
 
 prompt = hub.pull("hwchase17/react-chat-json")

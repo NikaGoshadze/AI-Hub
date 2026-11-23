@@ -16,11 +16,28 @@
       <button type="submit">Search</button>
     </form>
 
-    {% if results %}
+    {% if error_message %}
+    <section class="results error">
+      <h2>Search unavailable</h2>
+      <p>{{ error_message }}</p>
+    </section>
+    {% elif results is not none %}
+      {% if result_count %}
     <section class="results">
       <h2>Results</h2>
-      <pre>{{ results }}</pre>
+      <p>{{ result_count }} result{{ '' if result_count == 1 else 's' }} found.</p>
+      <ul>
+        {% for result in results %}
+        <li>Title: {{ result.title }}, Authors: {{ result.authors }}</li>
+        {% endfor %}
+      </ul>
     </section>
+      {% else %}
+    <section class="results empty">
+      <h2>No results</h2>
+      <p>No relevant books found in the database.</p>
+    </section>
+      {% endif %}
     {% endif %}
   </main>
 </body>
