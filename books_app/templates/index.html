@@ -11,6 +11,7 @@
     <h1>Book Search</h1>
     <p>Search the book vector database for matching titles and authors.</p>
     <form method="post" class="search-form">
+      <input type="hidden" name="action" value="search">
       <label for="query">Search query</label>
       <input id="query" name="query" type="text" value="{{ query }}" placeholder="Enter a topic, plot, or title">
       <button type="submit">Search</button>
@@ -20,8 +21,53 @@
     <section class="results">
       <h2>Results</h2>
       <pre>{{ results }}</pre>
+      {% if search_items %}
+      <ul class="result-actions">
+        {% for item in search_items %}
+        {% set parts = item.split(', Authors: ') %}
+        <li>
+          <div class="result-item">
+            <span>{{ item }}</span>
+            <form method="post" class="inline-form">
+              <input type="hidden" name="action" value="save">
+              <input type="hidden" name="query" value="{{ query }}">
+              <input type="hidden" name="results" value="{{ results }}">
+              <input type="hidden" name="title" value="{{ parts[0] }}">
+              <input type="hidden" name="authors" value="{{ parts[1] if parts|length > 1 else '' }}">
+              <button type="submit">Save</button>
+            </form>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
     </section>
     {% endif %}
+
+    <section class="favorites">
+      <h2>Favorites</h2>
+      {% if favorites %}
+      <ul>
+        {% for favorite in favorites %}
+        <li>
+          <div class="result-item">
+            <span>Title: {{ favorite.title }}, Authors: {{ favorite.authors }}</span>
+            <form method="post" class="inline-form">
+              <input type="hidden" name="action" value="remove">
+              <input type="hidden" name="query" value="{{ query }}">
+              <input type="hidden" name="results" value="{{ results }}">
+              <input type="hidden" name="title" value="{{ favorite.title }}">
+              <input type="hidden" name="authors" value="{{ favorite.authors }}">
+              <button type="submit">Remove</button>
+            </form>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p>No favorites saved yet.</p>
+      {% endif %}
+    </section>
   </main>
 </body>
 </html>
