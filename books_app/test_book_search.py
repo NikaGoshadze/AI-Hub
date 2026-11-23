@@ -11,11 +11,11 @@ def test_success():
     store.similarity_search.return_value = [
         SimpleNamespace(metadata={"title": "The Example", "authors": "A. Writer"})
     ]
-    assert search_books("example", store) == (
+    assert search_books("example", store, limit=5) == (
         "Found the following relevant books in the database:\n"
         "- Title: The Example, Authors: A. Writer\n"
     )
-    store.similarity_search.assert_called_once_with("example", k=3)
+    store.similarity_search.assert_called_once_with("example", k=5)
 
 
 def test_empty():
