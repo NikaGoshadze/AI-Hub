@@ -43,15 +43,49 @@ button:hover {
   background: #1d4ed8;
 }
 
+.message,
 .results {
   margin-top: 2rem;
   padding: 1rem;
+  border-radius: 8px;
+}
+
+.summary,
+.results {
   background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.error {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #991b1b;
+}
+
+.empty {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+.result-count {
+  margin-bottom: 0;
+}
+
+.result-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.result-item {
+  padding: 1rem;
+  background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
 }
 
-pre {
-  white-space: pre-wrap;
-  margin: 0;
+.result-item h3 {
+  margin-top: 0;
 }

@@ -13,14 +13,42 @@
     <form method="post" class="search-form">
       <label for="query">Search query</label>
       <input id="query" name="query" type="text" value="{{ query }}" placeholder="Enter a topic, plot, or title">
+
+      <label for="author">Author filter</label>
+      <input id="author" name="author" type="text" value="{{ author }}" placeholder="Optional author name">
+
       <button type="submit">Search</button>
     </form>
 
-    {% if results %}
-    <section class="results">
-      <h2>Results</h2>
-      <pre>{{ results }}</pre>
+    {% if submitted and error %}
+    <section class="message error" role="alert">
+      <h2>Error</h2>
+      <p>{{ error }}</p>
     </section>
+    {% endif %}
+
+    {% if submitted and not error %}
+      <section class="message summary">
+        <h2>Results</h2>
+        <p class="result-count">{{ result_count }} result{{ '' if result_count == 1 else 's' }} found.</p>
+      </section>
+
+      {% if result_count %}
+      <section class="results">
+        <ul class="result-list">
+          {% for doc in results %}
+          <li class="result-item">
+            <h3>{{ doc.metadata.get('title', 'N/A') }}</h3>
+            <p><strong>Authors:</strong> {{ doc.metadata.get('authors', 'N/A') }}</p>
+          </li>
+          {% endfor %}
+        </ul>
+      </section>
+      {% else %}
+      <section class="message empty">
+        <p>No relevant books found in the database.</p>
+      </section>
+      {% endif %}
     {% endif %}
   </main>
 </body>
