@@ -58,9 +58,9 @@ vectorstore = PineconeVectorStore.from_existing_index(
 print("Successfully connected to Pinecone index.")
 
 if __package__:
-    from .book_search import search_books
+    from .book_search import lookup_books, search_books
 else:
-    from book_search import search_books
+    from book_search import lookup_books, search_books
 
 
 def search_book_database(query: str) -> str:
@@ -70,6 +70,10 @@ def search_book_database(query: str) -> str:
     """
     print(f"\n[Tool Action: Searching database for '{query}']")
     return search_books(query, vectorstore, limit=BOOK_SEARCH_LIMIT)
+
+
+def lookup_book_database(query: str):
+    return lookup_books(query, vectorstore, limit=BOOK_SEARCH_LIMIT)
 
 book_search_tool = Tool(
     name="book_database_search",
