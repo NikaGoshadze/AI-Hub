@@ -30,8 +30,11 @@ def web_app_module(monkeypatch):
     fake_hf = types.ModuleType("langchain_huggingface")
     fake_hf.HuggingFaceEmbeddings = lambda *args, **kwargs: object()
 
+    store = types.SimpleNamespace()
     fake_pinecone_vs = types.ModuleType("langchain_pinecone")
-    fake_pinecone_vs.PineconeVectorStore = types.SimpleNamespace(from_existing_index=lambda *args, **kwargs: object())
+    fake_pinecone_vs.PineconeVectorStore = types.SimpleNamespace(
+        from_existing_index=lambda *args, **kwargs: store
+    )
 
     fake_pinecone = types.ModuleType("pinecone")
     fake_pinecone.Pinecone = lambda *args, **kwargs: types.SimpleNamespace(list_indexes=lambda: types.SimpleNamespace(names=lambda: ["langchain-books-pure-v1"]))
@@ -49,19 +52,25 @@ def web_app_module(monkeypatch):
     monkeypatch.setitem(sys.modules, "pinecone", fake_pinecone)
     monkeypatch.setitem(sys.modules, "dotenv", fake_dotenv)
 
-    sys.modules.pop("books_app.main", None)
-    sys.modules.pop("books_app.web_app", None)
-    module = importlib.import_module("books_app.web_app")
-    yield module
+    app_modules = ("books_app.main", "books_app.web_app")
+    previous = {name: sys.modules.pop(name, None) for name in app_modules}
+    try:
+        yield importlib.import_module("books_app.web_app"), store
+    finally:
+        for name in app_modules:
+            sys.modules.pop(name, None)
+            if previous[name] is not None:
+                sys.modules[name] = previous[name]
 
 
-def test_web_success(web_app_module, monkeypatch):
-    monkeypatch.setattr(web_app_module, "lookup_book_database", lambda query: ([
-        types.SimpleNamespace(title="Book One", authors="Author A"),
-        types.SimpleNamespace(title="Book Two", authors="Author B"),
-    ], 2))
+def test_web_success(web_app_module):
+    web_app, store = web_app_module
+    store.similarity_search = lambda query, k: [
+        types.SimpleNamespace(metadata={"title": "Book One", "authors": "Author A"}),
+        types.SimpleNamespace(metadata={"title": "Book Two", "authors": "Author B"}),
+    ]
 
-    client = web_app_module.app.test_client()
+    client = web_app.app.test_client()
     response = client.post("/", data={"query": "mystery"})
 
     assert response.status_code == 200
@@ -71,10 +80,11 @@ def test_web_success(web_app_module, monkeypatch):
     assert "Title: Book Two, Authors: Author B" in html
 
 
-def test_web_no_results(web_app_module, monkeypatch):
-    monkeypatch.setattr(web_app_module, "lookup_book_database", lambda query: ([], 0))
+def test_web_no_results(web_app_module):
+    web_app, store = web_app_module
+    store.similarity_search = lambda query, k: []
 
-    client = web_app_module.app.test_client()
+    client = web_app.app.test_client()
     response = client.post("/", data={"query": "nothing"})
 
     assert response.status_code == 200
@@ -83,13 +93,15 @@ def test_web_no_results(web_app_module, monkeypatch):
     assert "No relevant books found in the database." in html
 
 
-def test_web_backend_error(web_app_module, monkeypatch):
-    def raise_error(query):
+def test_web_backend_error(web_app_module):
+    web_app, store = web_app_module
+
+    def raise_error(query, k):
         raise RuntimeError("boom")
 
-    monkeypatch.setattr(web_app_module, "lookup_book_database", raise_error)
+    store.similarity_search = raise_error
 
-    client = web_app_module.app.test_client()
+    client = web_app.app.test_client()
     response = client.post("/", data={"query": "oops"})
 
     assert response.status_code == 200

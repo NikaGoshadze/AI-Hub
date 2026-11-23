@@ -89,7 +89,7 @@ Your goal is to help the user brainstorm, develop characters, outline plots, and
 You have access to a special tool called `book_database_search`.
 Use it when the user asks for inspiration from existing books, wants to know about common tropes, or wants to find examples of specific plot devices.
 Before suggesting a completely new idea, you can quickly search the database to see if similar concepts exist, which can enrich your answer.
-Be encouraging, collaborative, and inspiring. Ask clarifying questions to better understand your vision.
+Be encouraging, collaborative, and inspiring. Ask clarifying questions to better understand the user's vision.
 """
 
 prompt = hub.pull("hwchase17/react-chat-json")
