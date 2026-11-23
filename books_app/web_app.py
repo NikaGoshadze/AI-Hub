@@ -11,8 +11,16 @@ def index():
     results = ""
     if request.method == "POST":
         query = request.form.get("query", "").strip()
-        if query:
-            results = search_book_database(query)
+        if not query:
+            results = "Please enter a search term to look for matching books."
+        else:
+            try:
+                results = search_book_database(query)
+            except Exception:
+                results = (
+                    "Sorry, the book search service is temporarily unavailable. "
+                    "Please try again in a moment."
+                )
     return render_template("index.html", query=query, results=results)
 
 
