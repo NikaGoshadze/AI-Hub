@@ -13,6 +13,11 @@ try:
 except ImportError:
     from chat_commands import is_quit_or_exit_command, is_summary_command
 
+try:
+    from pizza_app.chat_summary import summary_lines
+except ImportError:
+    from chat_summary import summary_lines
+
 # --- 1. Load Environment and LLM ---
 load_dotenv()
 
@@ -102,12 +107,8 @@ def run_chatbot():
                 break
 
             if is_summary_command(user_input):
-                current_summary = memory.moving_summary_buffer
-                if not current_summary:
-                    print("\n[System: ჯერ საუბრის ისტორია არ არის.]")
-                else:
-                    print("\n--- მიმდინარე საუბრის ისტორია ---")
-                    print(current_summary)
+                for line in summary_lines(memory.moving_summary_buffer):
+                    print(line)
                 continue
 
             inputs = {"input": user_input}
