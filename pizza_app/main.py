@@ -91,7 +91,7 @@ chain = (
 )
 
 # --- 5. Define the Main Chatbot Loop ---
-def run_chatbot():
+def run_chatbot() -> None:
     """
     Runs the main loop for the Pizza AI Chatbot.
     """

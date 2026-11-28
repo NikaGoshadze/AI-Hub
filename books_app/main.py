@@ -72,7 +72,7 @@ def search_book_database(query: str) -> str:
     return search_books(query, vectorstore, limit=BOOK_SEARCH_LIMIT)
 
 
-def lookup_book_database(query: str):
+def lookup_book_database(query: str) -> tuple[list["BookSearchResult"], int]:
     return lookup_books(query, vectorstore, limit=BOOK_SEARCH_LIMIT)
 
 book_search_tool = Tool(
@@ -110,7 +110,7 @@ agent_executor = AgentExecutor(
     handle_parsing_errors=True
 )
 
-def run_creative_agent():
+def run_creative_agent() -> None:
     """Runs the main loop for the Creative Workflow Agent."""
     print("\n🤖 Hello! I'm Muse, your creative partner. How can I help you with your book today?")
     print("Type 'quit' to exit.\n")
